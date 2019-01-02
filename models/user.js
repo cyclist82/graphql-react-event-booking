@@ -14,10 +14,6 @@ const userSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Event',
     }],
-    bookedEvents: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Event',
-    }]
 });
 
 module.exports = mongoose.model('User', userSchema);
