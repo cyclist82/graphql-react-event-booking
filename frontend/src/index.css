@@ -7,7 +7,7 @@ body {
 
 .form-control label,
 .form-control input,
-.form-control textarea{
+.form-control textarea {
     width: 100%;
     display: block;
 }
@@ -27,7 +27,7 @@ body {
     border: 1px solid #5101d1;
     border-radius: 3px;
     padding: 0.5rem 1rem;
-    margin: 0 1rem;
+    margin: 0rem;
     margin-right: 1rem;
     box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.26);
     color: white;
