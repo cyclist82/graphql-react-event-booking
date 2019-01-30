@@ -13,6 +13,7 @@ class AuthPage extends Component {
         isLoading: false,
         selectedEvent: null
     };
+    isActive = true;
 
     static contextType = AuthContext;
 
@@ -127,7 +128,7 @@ class AuthPage extends Component {
             method: "POST",
             body: JSON.stringify(requestBody),
             headers: {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
             }
         })
             .then(res => {
@@ -138,23 +139,67 @@ class AuthPage extends Component {
             })
             .then(resData => {
                 const events = resData.data.events;
-                this.setState({events: events, isLoading: false});
+                if (this.isActive) {
+                    this.setState({events: events, isLoading: false});
+                }
             })
             .catch(err => {
                 console.log(err);
-                this.setState({isLoading: false});
+                if (this.isActive) {
+                    this.setState({isLoading: false});
+                }
             });
     }
 
     showDetailHandler = eventId => {
         this.setState(prevState => {
-            const selectedEvent= prevState.events.find(e => e._id === eventId);
+            const selectedEvent = prevState.events.find(e => e._id === eventId);
             return {selectedEvent: selectedEvent};
         })
     }
 
     bookEventHandler = () => {
+        if (!this.context.token) {
+            this.setState({selectedEvent: null});
+            return;
+        }
+        const requestBody = {
+            query: `
+                  mutation {
+                    bookEvent(eventId: "${this.state.selectedEvent._id}"){
+                        _id
+                        createdAt
+                        updatedAt
+                  }
+              }
+              `
+        };
 
+        fetch("http://localhost:8000/graphql", {
+            method: "POST",
+            body: JSON.stringify(requestBody),
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + this.context.token,
+            }
+        })
+            .then(res => {
+                if (res.status !== 200 && res.status !== 201) {
+                    throw new Error("Failed!");
+                }
+                return res.json();
+            })
+            .then(resData => {
+                console.log(resData);
+                this.setState({selectedEvent: null})
+            })
+            .catch(err => {
+                console.log(err);
+            });
+    };
+
+    componentWillUnmount() {
+        this.isActive = false;
     }
 
     render() {
@@ -191,11 +236,12 @@ class AuthPage extends Component {
                 </form>
             </Modal>)}
             {this.state.selectedEvent && (<Modal title={this.state.selectedEvent.title}
-                                                confirmText="Book"
-                                            canConfirm canCancel onCancel={this.modalCancelHandler}
-                                            onConfirm={this.bookEventHandler}>
-               <h1>{this.state.selectedEvent.title}</h1>
-               <h2>{this.state.selectedEvent.price} € - {new Date(this.state.selectedEvent.date).toLocaleDateString('de-DE')}</h2>
+                                                 confirmText={this.context.token ? 'Book' : 'Confirm'}
+                                                 canConfirm canCancel onCancel={this.modalCancelHandler}
+                                                 onConfirm={this.bookEventHandler}>
+                <h1>{this.state.selectedEvent.title}</h1>
+                <h2>{this.state.selectedEvent.price} €
+                    - {new Date(this.state.selectedEvent.date).toLocaleDateString('de-DE')}</h2>
                 <p>{this.state.selectedEvent.description}</p>
             </Modal>)}
             {this.context.token && (< div className="events-control">
