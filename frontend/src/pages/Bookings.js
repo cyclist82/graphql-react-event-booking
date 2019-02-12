@@ -3,11 +3,14 @@ import React, { Component } from 'react';
 import Spinner from '../components/Spinner/Spinner'
 import AuthContext from '../context/auth-context'
 import BookingList from '../components/Bookings/BookingsList/BookingList';
+import BookingsChart from "../components/Bookings/BookingsChart/BookingsChart";
+import BookingsNavigation from "../components/Bookings/BookingsNavigation/BookingsNavigation";
 
 class AuthPage extends Component {
     state = {
         isLoading: false,
         bookings: [],
+        outputType: 'list',
     };
 
 
@@ -29,6 +32,7 @@ class AuthPage extends Component {
                             _id
                             title
                             date
+                            price
                         }
                     }
                 }`
@@ -101,13 +105,32 @@ class AuthPage extends Component {
             });
     };
 
+    changeOutputTypeHander = outputType => {
+        if (outputType === 'list') {
+            this.setState({outputType: 'list'})
+        } else {
+            this.setState({outputType: 'chart'})
+        }
+    }
+
     render() {
+        let content = <Spinner/>;
+        if (!this.state.isLoading) {
+            content = (
+                <React.Fragment>
+                    <BookingsNavigation activeOutputType={this.state.outputType}
+                                        onChange={this.changeOutputTypeHander}/>
+                    <div>
+                        {this.state.outputType === 'list' ?
+                            <BookingList bookings={this.state.bookings} onDeleteBooking={this.deleteBookingHandler}/> :
+                            <BookingsChart bookings={this.state.bookings}></BookingsChart>}
+                    </div>
+                </React.Fragment>
+            );
+        }
         return (
             <React.Fragment>
-                {this.state.isLoading ? <Spinner/> : (
-                    <BookingList bookings={this.state.bookings} onDeleteBooking={this.deleteBookingHandler}/>
-                )}
-
+                {content}
             </React.Fragment>
         );
     }
